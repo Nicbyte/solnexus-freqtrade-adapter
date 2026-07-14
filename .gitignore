@@ -12,3 +12,5 @@ venv/
 # Adapter output you generate at runtime (keep examples/ committed)
 solnexus_signals.json
 .DS_Store
+.pytest_cache/
+.venv_test/

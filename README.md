@@ -57,11 +57,24 @@ sig = to_freqtrade_signal(alert, quote="USDT", min_score=60)
 | `plan.invalidators` | list[str] | conditions that void the plan |
 | `plan.review_windows` | list[str] | e.g. `["+15m","+1h","+4h"]` |
 
-If your live SolNexus API uses different key names, pass a `field_map` to `parse_alert` — no code fork. See `tests/test_adapter.py::test_field_remap`.
+The live `GET /api/v1/alerts/next-actions` endpoint returns a flatter shape — `type` (`price_surge`/`price_drop`/`volume_spike`/`smart_buy`/`smart_sell`/...), `recommended_action` (`swap`/`watch`/`ignore`), and `confidence_score` on a 0–100 scale, with `token` as a bare symbol string plus `token_mint`. `parse_alert` auto-detects and normalizes both shapes. If your deployment still uses different key names, pass a `field_map` to `parse_alert` — no code fork. See `tests/test_adapter.py::test_field_remap`.
 
 ## freqtrade wiring
 
 `examples/freqtrade_strategy.py` is a scaffold `IStrategy` that reads the latest adapter output and emits entries. Set the path via `SOLNEXUS_SIGNAL_FILE` and noise floor via `SOLNEXUS_MIN_SCORE`. Tune to your own risk model — do not trade it untested.
+
+## Live API (Pro/Overmind)
+
+Pull real, high-conviction signals straight from the SolNexus REST API:
+
+```bash
+export SOLNEXUS_API_KEY=snx_xxx
+python3 examples/fetch_alerts.py 20
+```
+
+`GET /api/v1/alerts/next-actions` returns a flat JSON list. `signals_from_api_response` parses it and emits only `recommended_action == "swap"` alerts (the backend's execution action) — `watch`/`ignore` are monitor-only. `confidence_score` is 0–100 and is normalized to 0–1 internally; `min_score` stays on the 0–100 scale (default 55).
+
+Direction follows the backend's own mapping: `price_surge`/`smart_buy` → long, `price_drop`/`smart_sell` → short, everything else → neutral. See `tests/test_adapter.py` for the full mapping contract.
 
 ## Built by SolNexus Trade
 

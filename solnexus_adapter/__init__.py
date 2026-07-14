@@ -9,6 +9,7 @@ from .adapter import (
     FreqtradeSignal,
     alerts_from_file,
     parse_alert,
+    signals_from_api_response,
     signals_from_file,
     to_freqtrade_signal,
 )
@@ -20,6 +21,7 @@ __all__ = [
     "FreqtradeSignal",
     "alerts_from_file",
     "parse_alert",
+    "signals_from_api_response",
     "signals_from_file",
     "to_freqtrade_signal",
     "Bias",

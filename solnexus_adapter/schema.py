@@ -1,14 +1,26 @@
 """Data model for a SolNexus on-chain alert.
 
-Field names match the documented SolNexus alert shape. If the live API uses
-different keys, pass a `field_map` to `parse_alert` (see adapter.py) rather than
-forking this model.
+Two shapes are supported and both normalize into this single model:
+
+  * Generic "rich" alert (the documented trade-plan shape with a ``plan``
+    block: bias, tp_ladder, size_pct, invalidators, ...).
+  * Live API alert from ``GET /api/v1/alerts/next-actions`` -- flat fields
+    (``type``, ``recommended_action``, ``confidence_score`` on a 0-100 scale,
+    ``token`` as a bare symbol string + ``token_mint``, ...).
+
+``parse_alert`` (in adapter.py) auto-detects which one you pass. The
+direction mapping for live ``type`` values is copied verbatim from the
+SolNexus backend (``alert_poller._signal_direction_from_alert``):
+
+    price_surge / smart_buy  -> bullish (long)
+    price_drop  / smart_sell  -> bearish (short)
+    anything else               -> neutral
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class Bias(str, Enum):
@@ -19,10 +31,19 @@ class Bias(str, Enum):
 
 
 class SignalType(str, Enum):
+    # generic rich-alert types
     WHALE_FLOW = "whale_flow"
     POOL_SHIFT = "pool_shift"
     BREAKOUT = "breakout"
     NEW_PAIR = "new_pair"
+    # live /api/v1/alerts/next-actions types
+    PRICE_SURGE = "price_surge"
+    PRICE_DROP = "price_drop"
+    VOLUME_SPIKE = "volume_spike"
+    SMART_BUY = "smart_buy"
+    SMART_SELL = "smart_sell"
+    STABLE_SWAP = "stable_swap"
+    UNKNOWN = "unknown"
 
 
 @dataclass
@@ -67,3 +88,8 @@ class SolnexusAlert:
     plan: Plan
     context: Context = field(default_factory=Context)
     received_at: Optional[str] = None
+    # Free-form carry-through for fields the live API sends but the rich model
+    # does not model explicitly (recommended_action, risk_level, rationale, ...).
+    # Also carries ``api_source=True`` for live-API alerts so the converter can
+    # apply the swap-only gate without affecting generic alerts.
+    meta: Dict[str, Any] = field(default_factory=dict)
