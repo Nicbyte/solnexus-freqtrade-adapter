@@ -63,6 +63,32 @@ The live `GET /api/v1/alerts/next-actions` endpoint returns a flatter shape — 
 
 `examples/freqtrade_strategy.py` is a scaffold `IStrategy` that reads the latest adapter output and emits entries. Set the path via `SOLNEXUS_SIGNAL_FILE` and noise floor via `SOLNEXUS_MIN_SCORE`. Tune to your own risk model — do not trade it untested.
 
+## Closed loop (fetch → file → strategy)
+
+The bridge is a two-step pipeline joined by `solnexus_signals.json`:
+
+1. **Fetch + write.** `examples/fetch_alerts.py` pulls live alerts and persists the *raw* alert payloads to `solnexus_signals.json` (path configurable via `SOLNEXUS_SIGNAL_FILE`). It writes the raw payloads — not the converted signals — so the strategy re-applies its own score/swap gate at read time and the file stays idempotent.
+2. **Read.** `examples/freqtrade_strategy.py` reads that same file via `signals_from_file` and sets `enter_long` / `enter_short` on a matching pair.
+
+```bash
+# 1) Fetch live alerts (requires Pro/Overmind) -> writes solnexus_signals.json
+export SOLNEXUS_API_KEY=snx_xxx
+python3 examples/fetch_alerts.py 20
+
+# 2) Point the strategy at the same file and run freqtrade
+export SOLNEXUS_SIGNAL_FILE=solnexus_signals.json
+cp examples/freqtrade_strategy.py user_data/strategies/
+freqtrade trade --strategy SolnexusBridgeStrategy --config config.json
+```
+
+The closed loop is covered by `tests/test_pipeline.py` (write → read round-trip + strategy entry columns), which runs in CI with **no** freqtrade/pandas dependency. To run it locally:
+
+```bash
+pytest -q tests/test_pipeline.py
+```
+
+> The example JSON files in this repo (`example_alert.json`, `tests/fixtures/next_actions_sample.json`) are committed fixtures. The `solnexus_signals.json` you generate at runtime is gitignored.
+
 ## Live API (Pro/Overmind)
 
 Pull real, high-conviction signals straight from the SolNexus REST API:

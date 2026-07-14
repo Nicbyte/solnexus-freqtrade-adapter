@@ -12,6 +12,7 @@ from .adapter import (
     signals_from_api_response,
     signals_from_file,
     to_freqtrade_signal,
+    write_alerts_file,
 )
 from .schema import Bias, SolnexusAlert
 
@@ -24,6 +25,7 @@ __all__ = [
     "signals_from_api_response",
     "signals_from_file",
     "to_freqtrade_signal",
+    "write_alerts_file",
     "Bias",
     "SolnexusAlert",
 ]

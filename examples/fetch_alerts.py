@@ -18,7 +18,11 @@ import urllib.request
 # Allow running as a script without installing the package.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from solnexus_adapter import signals_from_api_response
+from solnexus_adapter import signals_from_api_response, write_alerts_file
+
+# Default matches freqtrade_strategy.py's SOLNEXUS_SIGNAL_FILE, so the file the
+# fetch step writes is exactly the one the strategy reads.
+SIGNAL_FILE = os.environ.get("SOLNEXUS_SIGNAL_FILE", "solnexus_signals.json")
 
 BASE_URL = "https://solnexus.xyz"
 
@@ -44,6 +48,10 @@ def main() -> int:
     print(f"Fetched {len(alerts)} alerts -> {len(signals)} actionable signals\n")
     for s in signals:
         print(json.dumps(s.to_dict(), indent=2))
+
+    n = write_alerts_file(SIGNAL_FILE, alerts)
+    print(f"\nWrote {n} raw alerts -> {SIGNAL_FILE}")
+    print("freqtrade_strategy.py reads this file via SOLNEXUS_SIGNAL_FILE.")
     return 0
 
 

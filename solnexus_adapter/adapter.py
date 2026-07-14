@@ -298,6 +298,24 @@ def signals_from_file(
     ]
 
 
+def write_alerts_file(path: str, alerts: Any) -> int:
+    """Persist raw SolNexus alert payloads for ``signals_from_file`` to re-ingest.
+
+    ``alerts`` is a single alert dict or a list of them (e.g. the ``items``
+    array from ``GET /api/v1/alerts/next-actions``). This is exactly the
+    on-disk shape ``signals_from_file`` / ``alerts_from_file`` expect, so the
+    writer and reader close the loop: fetch -> write_alerts_file -> the
+    freqtrade strategy reads via ``signals_from_file``.
+
+    Returns the number of alerts written.
+    """
+    if isinstance(alerts, dict):
+        alerts = [alerts]
+    with open(path, "w") as f:
+        json.dump(alerts, f, indent=2)
+    return len(alerts)
+
+
 def signals_from_api_response(
     response: Dict[str, Any],
     quote: str = QUOTE,
