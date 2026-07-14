@@ -1,0 +1,6 @@
+# Core adapter: zero hard dependencies (Python 3.9+ standard library only).
+# The example freqtrade strategy requires freqtrade:
+freqtrade>=2024.0
+
+# Dev / test only:
+pytest>=7.0

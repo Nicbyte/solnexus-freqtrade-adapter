@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.env.*
+*.json.tmp
+# Adapter output you generate at runtime (keep examples/ committed)
+solnexus_signals.json
+.DS_Store

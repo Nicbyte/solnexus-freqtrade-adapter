@@ -1,0 +1,34 @@
+{
+  "alert_id": "cf7ceb5658cd439c",
+  "received_at": "2026-07-14T11:42:03Z",
+  "signal_type": "whale_flow",
+  "ml_score": 78,
+  "confidence": 0.82,
+  "token": {
+    "symbol": "BONK",
+    "mint": "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+    "chain": "solana"
+  },
+  "context": {
+    "pool": "Raydium",
+    "size_usd": 412000,
+    "baseline_deviation_pct": 340,
+    "follow_through_blocks": 14
+  },
+  "plan": {
+    "bias": "bullish",
+    "entry_trigger": "price reclaims 0.00001234 on 5m close AND score holds >= 70 for next +15m window",
+    "size_pct": 2.0,
+    "tp_ladder": [
+      { "pct": 0.05, "close_fraction": 0.5 },
+      { "pct": 0.10, "close_fraction": 0.5 }
+    ],
+    "hard_stop_pct": 0.05,
+    "invalidators": [
+      "ml_score falls below 40",
+      "price loses 0.00001100 support",
+      "SOL drops >5% within +1h"
+    ],
+    "review_windows": ["+15m", "+1h", "+4h"]
+  }
+}
