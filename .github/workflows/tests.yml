@@ -11,4 +11,5 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install pytest
+      - run: pip install -e .
       - run: pytest -q
